@@ -7,7 +7,7 @@ Le but de ce projet est de créer une base de données SQLite puis un site capab
 Liste des  dépendances :
 git clone https://github.com/...
 cd ...
-pip install fastapi sqlite3 pydantic httpx
+pip install fastapi sqlite3 pydantic httpx 
 npm install express cors
 npm install -g nodemon
 
