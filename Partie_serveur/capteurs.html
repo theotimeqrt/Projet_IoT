@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capteurs</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh; 
+            overflow: hidden;
+        }
+
+        /* image de fond prend tout l'écran */
+        .background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('images/capteur.jpeg');
+            background-size: cover; 
+            background-position: center center; 
+            z-index: -1; 
+        }
+
+        /* conteneur principal fond blanc légèrement transparent */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8); 
+            border-radius: 10px; 
+            overflow-y: auto; 
+            height: calc(100vh - 60px);
+            margin-top: 60px; 
+        }
+
+        /* pour chaque élément capteur affiché */
+        .capteur-item {
+            background-color: #f8f9fa; 
+            padding: 15px; 
+            margin: 10px; 
+            border-radius: 5px; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            flex: 1 1 calc(50% - 20px);
+        }
+
+        /* On/Off */
+        .btn-on {
+            background-color: green;
+            color: white;
+        }
+
+        .btn-off {
+            background-color: red;
+            color: white;
+        }
+
+        /* responsive : si petit, les capteurs prennent toute la largeur */
+        @media (max-width: 768px) {
+            .capteur-item {
+                flex: 1 1 calc(100% - 20px);
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+        <!-- --------------- barre de navigation ---------------------- -->
+
+        <nav class="navbar navbar-expand-lg bg-light shadow-sm">
+            <div class="container">
+                <!-- logo "Logeco" en vert -->
+                <a class="navbar-brand" href="#" style="margin-right: 15px; font-weight: bold; color: #28a745;"> Logeco</a>
+                
+                <!-- menu déroulant, changement de couleur du pictogramme -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon" style="background-color: transparent;">
+                        <span class="navbar-toggler-line"></span>
+                        <span class="navbar-toggler-line"></span>
+                        <span class="navbar-toggler-line"></span>
+                    </span>
+                </button>
+                
+                <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link text-dark" href="index.html">Accueil</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="consommation.html">Consommation</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="capteurs.html">Capteurs</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="economies.html">Économies</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    
+        <style>
+            /* ici, on personnalise le bouton hamburger pour les petits écrans */
+            .navbar-toggler-icon {
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                position: relative;
+            }
+    
+            .navbar-toggler-line {
+                display: block;
+                width: 100%;
+                height: 4px;
+                background-color: #28a745;
+                margin: 6px 0;
+                transition: all 0.3s;
+            }
+    
+            /* quand le menu est ouvert, on applique des transformations sur les lignes */
+            .navbar-toggler.collapsed .navbar-toggler-line:nth-child(1) {
+                transform: rotate(45deg);
+                position: absolute;
+                top: 6px;
+            }
+    
+            .navbar-toggler.collapsed .navbar-toggler-line:nth-child(2) {
+                opacity: 0;
+            }
+    
+            .navbar-toggler.collapsed .navbar-toggler-line:nth-child(3) {
+                transform: rotate(-45deg);
+                position: absolute;
+                top: 18px;
+            }
+        </style>
+    
+        <!-- ----------------------------------------------- -->
+
+
+    <!-- section principale -->
+
+    <div class="background-image"></div>
+    
+    <div class="container mt-5 content">
+        <h1 class="text-center">Gestion des Capteurs</h1>
+        <!-- ici les capteurs vont s'afficher -->
+        <div id="capteurs-list" class="row d-flex flex-wrap mt-4"></div>
+        <!-- message d'erreur si aucun capteur n'est trouvé -->
+        <div id="error-message" style="color: red; text-align: center; display: none;">
+            <p>Erreur lors de la récupération des capteurs.</p>
+        </div>
+    </div>
+
+    <!-- script pour charger et afficher les capteurs -->
+     
+    <script>
+
+        const apiUrlCapteurs = "http://127.0.0.1:3000/capteurs"; 
+        const adresseLogement = "32_rue_ei"; 
+    
+        function loadCapteurs() {
+            const url = `${apiUrlCapteurs}/${encodeURIComponent(adresseLogement)}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur réseau');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.length) {
+                        document.getElementById('error-message').style.display = 'block';
+                        return;
+                    }
+
+                    // cacher message erreur et afficher capteurs
+                    document.getElementById('error-message').style.display = 'none';
+                    const capteursList = document.getElementById('capteurs-list');
+                    capteursList.innerHTML = ''; // réinit la liste
+
+                    data.forEach(capteur => {
+                        const div = document.createElement('div');
+                        div.classList.add('capteur-item', 'mb-3');
+                        div.innerHTML = `
+                            <h5>Capteur: ${capteur.ref_commerciale}</h5>
+                            <p><strong>Type:</strong> ${capteur.ref_type}</p>
+                            <p><strong>Port Com:</strong> ${capteur.port_com}</p>
+                            <span class="badge ${capteur.etat === 1 ? 'bg-success' : 'bg-danger'}">
+                                ${capteur.etat === 1 ? 'On' : 'Off'}
+                            </span>
+                        `;
+                        capteursList.appendChild(div);
+                    });
+                })
+                .catch(error => {
+                    console.error("Erreur lors de la récupération des capteurs:", error);
+                    document.getElementById('error-message').style.display = 'block';
+                });
+        }
+
+        // charge capteurs dès que page ouverte
+        loadCapteurs();
+    </script>
+
+    <!-- inclusion Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

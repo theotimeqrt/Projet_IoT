@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camembert des Factures</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+
+        /* ici, on définit la police utilisée sur la page */
+        body {
+            font-family: 'Nunito', sans-serif; /* police moderne et légèrement arrondie */
+        }
+
+        /* définit l'image de fond pour la page */
+        body {
+            background-image: url('images/monde.jpeg');
+            background-size: cover; /* l'image couvre toute la page */
+            background-position: center center; /* on centre l'image */
+            background-attachment: fixed; /* l'image reste fixe lors du défilement */
+            height: 100vh; /* la hauteur est de 100% de la fenêtre */
+        }
+
+        /* ici, on applique un flou uniquement à l'image de fond pour améliorer la lisibilité */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: inherit;
+            background-size: inherit;
+            background-position: inherit;
+            filter: blur(3px); /* flo */
+            z-index: -1; /* assure que le flou reste derrière le contenu */
+        }
+
+
+    /* cette classe permet de centrer le graphique camembert sur la page */
+    .piechart-container {
+        display: flex;
+        justify-content: center;  /* on centre horizontalement */
+        align-items: center;      /* on centre verticalement */
+        height: 100vh;            /* on prend toute la hauteur de la fenêtre */
+        margin-top: 60px;         /* un petit décalage du haut pour l'espacement */
+    }
+
+    #piechart {
+        width: 400px; 
+        height: 400px;
+        background-color: rgba(255, 255, 255, 0.1);  /* on met un fond semi-transparent */
+    }
+
+    </style>
+
+
+</head>
+<body>
+
+        <!-- --------------- barre de navigation ---------------------- -->
+         
+        <nav class="navbar navbar-expand-lg bg-light shadow-sm">
+            <div class="container">
+                <!-- logo "Logeco" en vert -->
+                <a class="navbar-brand" href="#" style="margin-right: 15px; font-weight: bold; color: #28a745;"> Logeco</a>
+                
+                <!-- menu déroulant, changement de couleur du pictogramme -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon" style="background-color: transparent;">
+                        <span class="navbar-toggler-line"></span>
+                        <span class="navbar-toggler-line"></span>
+                        <span class="navbar-toggler-line"></span>
+                    </span>
+                </button>
+                
+                <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link text-dark" href="index.html">Accueil</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="consommation.html">Consommation</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="capteurs.html">Capteurs</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="economies.html">Économies</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="configuration.html">Configuration</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    
+        <style>
+            /* ici, on personnalise le bouton hamburger pour les petits écrans */
+            .navbar-toggler-icon {
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                position: relative;
+            }
+    
+            .navbar-toggler-line {
+                display: block;
+                width: 100%;
+                height: 4px;
+                background-color: #28a745;
+                margin: 6px 0;
+                transition: all 0.3s;
+            }
+    
+            /* quand le menu est ouvert, on applique des transformations sur les lignes */
+            .navbar-toggler.collapsed .navbar-toggler-line:nth-child(1) {
+                transform: rotate(45deg);
+                position: absolute;
+                top: 6px;
+            }
+    
+            .navbar-toggler.collapsed .navbar-toggler-line:nth-child(2) {
+                opacity: 0;
+            }
+    
+            .navbar-toggler.collapsed .navbar-toggler-line:nth-child(3) {
+                transform: rotate(-45deg);
+                position: absolute;
+                top: 18px;
+            }
+        </style>
+    
+        <!-- ----------------------------------------------- -->
+
+<!-- --------------- graphique camembert ---------------------- -->
+
+<div class="container mt-3 text-center">
+    <label for="mois-select">Sélectionnez un mois :</label>
+    <select id="mois-select" class="form-select w-auto d-inline-block">
+        <option value="2020-01">Janvier 2020</option>
+        <option value="2020-02">Février 2020</option>
+        <option value="2020-03">Mars 2020</option>
+    </select>
+</div>
+
+<div class="container mt-5">
+    <h1 class="text-center">Répartition des factures</h1>
+
+    <div id="capteurs-list" class="mt-4"></div>
+    <div id="error-message" style="color: red; text-align: center; display: none;">
+        <p>Erreur lors de la récup.</p>
+    </div>
+</div>
+
+    <div id="piechart" style="width: 400px; height: 400px; margin: 0 auto;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script>
+
+
+// ici, on charge les données des factures au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+
+    const logementId = '32_rue_ei'; // l'identifiant du logement à analyser
+
+    // requête HTTP pour récupérer les factures d'un logement spécifique
+    fetch(`http://localhost:3000/factures/${logementId}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('données des factures:', data);
+            if (data.length === 0) {
+                alert('aucune facture trouvée pour ce logement.'); // si aucune facture, on prévient l'utilisateur
+            } else {
+                drawChart(data); // appel à la fonction pour dessiner le graphique
+            }
+        })
+        .catch(error => console.error('erreur lors de la récupération des factures:', error)); // gestion des erreurs
+});
+
+// fonction pour dessiner le graphique camembert
+function drawChart(factures) {
+    google.charts.load('current', {
+        packages: ['corechart', 'piechart'] // on charge les librairies nécessaires pour le graphique
+    });
+
+    google.charts.setOnLoadCallback(function() {
+        var data = google.visualization.arrayToDataTable([
+            ['type de facture', 'montant'], // définition des colonnes
+            ...factures.map(facture => [facture.type_facture, facture.montant]) // on remplit les données avec celles récupérées
+        ]);
+
+        // options de personnalisation du graphique
+        var options = {
+            //title: 'répartition des factures',
+            is3D: true, // graphique en 3D
+            pieSliceText: 'percentage',  // afficher le pourcentage sur chaque part
+            tooltip: {  
+                trigger: 'both',  // les tooltips apparaissent au survol ou au clic
+                isHtml: true,     // on utilise le HTML pour personnaliser les tooltips
+                // personnalisation de l'affichage dans les tooltips
+                textStyle: {
+                    fontSize: 12,
+                    color: '#000000',
+                },
+                showColorCode: true // on affiche les couleurs dans les tooltips
+            }
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+        chart.draw(data, options); // on dessine le graphique avec les données et options
+
+        // gestion des événements au survol des parts du graphique
+        google.visualization.events.addListener(chart, 'onmouseover', function(e) {
+            var sliceIndex = e['row']; // index de la part survolée
+            var sliceData = data.getValue(sliceIndex, 0); // type de la facture
+            var sliceValue = data.getValue(sliceIndex, 1); // montant de la facture
+
+            // affichage d'un tooltip personnalisé
+            var tooltipHtml = `
+                <div style="font-size: 14px; padding: 5px; color: #000;">
+                    <strong>${sliceData} :</strong> ${sliceValue} €
+                </div>
+            `;
+            chart.setAction({
+                id: 'tooltip',
+                text: tooltipHtml // on affiche le tooltip personnalisé
+            });
+        });
+
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+        const logementId = '32_rue_ei'; // id logement
+        const moisSelect = document.getElementById('mois-select');
+        
+        // Fonction pour récupérer et afficher les données pour un mois donné
+        function fetchAndDisplayData(mois) {
+            fetch(`http://localhost:3000/factures/${logementId}?mois=${mois}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        alert('Aucune donnée pour ce mois.');
+                    } else {
+                        drawChart(data); // Met à jour le graphique
+                    }
+                })
+                .catch(error => console.error('Erreur de récupération des données :', error));
+        }
+
+        // Charger les données pour le mois initial sélectionné
+        fetchAndDisplayData(moisSelect.value);
+
+        // Mettre à jour les données lorsque l'utilisateur change de mois
+        moisSelect.addEventListener('change', function () {
+            fetchAndDisplayData(moisSelect.value);
+        });
+});
+
+</script>
+
+
+</body>
+</html>
