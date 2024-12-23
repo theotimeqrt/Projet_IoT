@@ -2,8 +2,8 @@ Description :
 Le but de ce projet est de créer une base de données SQLite puis un site capable d'intéragir avec elle.
 
 Liste des  dépendances :
-git clone https://github.com/...
-cd ...
+git clone https://github.com/Projet_IoT
+cd Projet_IoT
 pip install fastapi sqlite3 pydantic httpx
 npm install express cors
 npm install -g nodemon
